@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcards Educativos - Aprende Conmigo</title>
+  <style>
+    :root {
+      --bg-color: #f1f5f9;
+      --card-front: #10b981;
+      --card-back: #059669;
+      --text-color: #ffffff;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #1e293b;
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .info-text {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      max-width: 1000px;
+    }
+
+    .tab-btn {
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      border-radius: 20px;
+      background-color: #e2e8f0;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn.active {
+      background-color: var(--card-front);
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+
+    .tab-btn.lixeira {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    .tab-btn.lixeira.active {
+      background-color: #dc2626;
+      box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-delete-cat {
+      background: rgba(239, 68, 68, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .btn-delete-cat:hover {
+      background: rgba(220, 38, 38, 1);
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 12px;
+      width: 100%;
+      max-width: 1000px;
+      padding-bottom: 30px;
+    }
+
+    .grid-container.grid-custom-container {
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .card {
+      background-color: transparent;
+      height: 140px;
+      perspective: 1000px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .card.card-large {
+      height: 165px;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+      transform-style: preserve-3d;
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 6px;
+      box-sizing: border-box;
+      color: var(--text-color);
+    }
+
+    .card-front {
+      background-color: var(--card-front);
+    }
+
+    .card-front .main-title {
+      font-size: 19px;
+      font-weight: bold;
+      word-break: normal;
+      overflow-wrap: normal;
+      hyphens: none;
+      line-height: 1.15;
+      padding: 0 2px;
+    }
+
+    .card-front .visual-front {
+      font-size: 42px;
+    }
+
+    .card-back {
+      background-color: var(--card-back);
+      transform: rotateY(180deg);
+    }
+
+    .card-back .visual {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+
+    .card-back .es-text {
+      font-size: 14px;
+      font-weight: bold;
+      word-break: break-word;
+      margin-top: 4px;
+    }
+
+    .btn-delete-card {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: transparent;
+      color: #000000;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+
+    .btn-delete-card:hover {
+      color: #ff0000;
+      transform: scale(1.2);
+    }
+
+    .btn-restore-card {
+      position: absolute;
+      top: 5px;
+      right: 30px;
+      background: transparent;
+      color: #059669;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+
+    .btn-restore-card:hover {
+      color: #10b981;
+      transform: scale(1.2);
+    }
+
+    .btn-delete-permanent {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: transparent;
+      color: #ff0000;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+
+    .btn-delete-permanent:hover {
+      color: #cc0000;
+      transform: scale(1.2);
+    }
+
+    .photo-btn-placeholder-large {
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px dashed #ffffff;
+      border-radius: 10px;
+      width: 75px;
+      height: 75px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      color: #ffffff;
+      font-weight: bold;
+      transition: background 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .photo-btn-placeholder-large:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-foto-pill {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: #0d9488;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .btn-foto-pill:hover {
+      background: #0f766e;
+    }
+
+    .card-img-large {
+      width: 75px !important;
+      height: 75px !important;
+      object-fit: cover !important;
+      border-radius: 10px !important;
+      border: 2px solid #ffffff !important;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+      max-width: 75px !important;
+      max-height: 75px !important;
+    }
+
+    .custom-panel {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      width: 100%;
+      max-width: 1000px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .custom-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .custom-form input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 14px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .custom-form input[type="text"]:focus {
+      border-color: var(--card-front);
+    }
+
+    .btn-add {
+      background-color: var(--card-front);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .card-actions {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+    }
+
+    .btn-action {
+      background: rgba(0, 0, 0, 0.4);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-action:hover {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    .menu-destinos {
+      position: absolute;
+      top: 32px;
+      right: 5px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      max-height: 140px;
+      overflow-y: auto;
+      min-width: 140px;
+    }
+
+    .menu-destinos button {
+      background: white;
+      color: #333;
+      border: none;
+      padding: 6px 12px;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      white-space: nowrap;
+    }
+
+    .menu-destinos button:hover {
+      background: #f1f5f9;
+    }
+
+    .lixeira-vazia {
+      text-align: center;
+      color: #64748b;
+      font-size: 18px;
+      padding: 40px 20px;
+      width: 100%;
+      grid-column: 1 / -1;
+    }
+
+    /* ===== SPLASH SCREEN ===== */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #059669 0%, #10b981 45%, #34d399 100%);
+      overflow: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #splash-screen.splash-hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-blob {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      filter: blur(2px);
+    }
+
+    .splash-blob-1 { width: 220px; height: 220px; top: -60px; left: -60px; animation: splashFloat 7s ease-in-out infinite; }
+    .splash-blob-2 { width: 160px; height: 160px; bottom: -40px; right: -40px; animation: splashFloat 8s ease-in-out infinite reverse; }
+    .splash-blob-3 { width: 90px; height: 90px; top: 20%; right: 12%; animation: splashFloat 5.5s ease-in-out infinite; }
+
+    @keyframes splashFloat {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-22px) translateX(14px); }
+    }
+
+    .splash-emoji-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .splash-emoji-row span {
+      font-size: 34px;
+      display: inline-block;
+      animation: splashBounce 1.6s ease-in-out infinite;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+    }
+
+    .splash-emoji-row span:nth-child(2) { animation-delay: 0.15s; }
+    .splash-emoji-row span:nth-child(3) { animation-delay: 0.3s; }
+    .splash-emoji-row span:nth-child(4) { animation-delay: 0.45s; }
+    .splash-emoji-row span:nth-child(5) { animation-delay: 0.6s; }
+
+    @keyframes splashBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-14px) rotate(-6deg); }
+    }
+
+    .splash-icon {
+      width: 110px;
+      height: 110px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+      margin-bottom: 22px;
+      animation: splashPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both, splashIconFloat 3s ease-in-out 0.7s infinite;
+    }
+
+    @keyframes splashPop {
+      0% { transform: scale(0) rotate(-25deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes splashIconFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .splash-title {
+      color: #ffffff;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      margin: 0;
+      opacity: 0;
+      animation: splashFadeUp 0.7s ease 0.25s forwards;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .splash-subtitle {
+      color: rgba(255,255,255,0.92);
+      font-size: 15px;
+      margin: 8px 0 34px 0;
+      opacity: 0;
+      animation: splashFadeUp 0.7s ease 0.4s forwards;
+      text-align: center;
+      padding: 0 30px;
+    }
+
+    @keyframes splashFadeUp {
+      0% { opacity: 0; transform: translateY(14px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .splash-enter-btn {
+      background: #ffffff;
+      color: #059669;
+      border: none;
+      padding: 15px 38px;
+      border-radius: 30px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      opacity: 0;
+      animation: splashFadeUp 0.7s ease 0.55s forwards, splashPulse 2s ease-in-out 1.4s infinite;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .splash-enter-btn:active {
+      transform: scale(0.96);
+    }
+
+    @keyframes splashPulse {
+      0%, 100% { box-shadow: 0 10px 25px rgba(0,0,0,0.2), 0 0 0 0 rgba(255,255,255,0.5); }
+      50% { box-shadow: 0 10px 25px rgba(0,0,0,0.2), 0 0 0 12px rgba(255,255,255,0); }
+    }
+
+    .splash-dots {
+      position: absolute;
+      bottom: 26px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      animation: splashFadeUp 0.7s ease 0.7s forwards;
+    }
+
+    .splash-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.6);
+      animation: splashDotBlink 1.4s ease-in-out infinite;
+    }
+
+    .splash-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .splash-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes splashDotBlink {
+      0%, 100% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="splash-screen">
+    <div class="splash-blob splash-blob-1"></div>
+    <div class="splash-blob splash-blob-2"></div>
+    <div class="splash-blob splash-blob-3"></div>
+
+    <div class="splash-emoji-row">
+      <span>🅰️</span><span>🐱</span><span>🍎</span><span>🚗</span><span>🎨</span>
+    </div>
+
+    <div class="splash-icon">🐸</div>
+    <h1 class="splash-title">Aprende Conmigo</h1>
+    <p class="splash-subtitle">Flashcards divertidos para aprender Espanhol!</p>
+
+    <button class="splash-enter-btn" onclick="entrarNoApp()">🚀 Começar</button>
+
+    <div class="splash-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <h1>Aprende Conmigo</h1>
+  <p class="info-text">Toca no card para virar e ouvir em Espanhol!</p>
+
+  <div class="tabs" id="tabs-container"></div>
+
+  <div id="grids-wrapper" style="width: 100%; max-width: 1000px;"></div>
+
+  <!-- ABA PERSONALIZADA -->
+  <div id="container-custom" class="hidden" style="width: 100%; max-width: 1000px;">
+    <div class="custom-panel">
+      <div class="custom-form">
+        <input type="text" id="custom-input-name" placeholder="Nome em Português..." />
+        <button class="btn-add" onclick="addCustomCard()">Criar Card</button>
+      </div>
+      <div class="custom-form">
+        <input type="text" id="custom-cat-name" placeholder="Nome do novo Catálogo..." />
+        <button class="btn-add" style="background-color: #3b82f6;" onclick="criarNovaCategoria()">Criar Catálogo</button>
+      </div>
+    </div>
+    <div id="grid-custom" class="grid-container grid-custom-container"></div>
+  </div>
+
+  <script>
+    let categoriasCustomizadas = JSON.parse(localStorage.getItem('cat_customizadas') || '[]');
+    let customCards = JSON.parse(localStorage.getItem('custom_flashcards') || '[]');
+    let lixeira = JSON.parse(localStorage.getItem('lixeira_flashcards') || '[]');
+    let currentActiveTab = 'alfabeto';
+
+    const alfabeto = [
+      { es: "A", visual: "🅰️" }, { es: "Be", visual: "🐝" }, { es: "Ce", visual: "🏠" },
+      { es: "De", visual: "🎲" }, { es: "E", visual: "🐘" }, { es: "Efe", visual: "🔥" },
+      { es: "Ge", visual: "🐱" }, { es: "Hache", visual: "🍦" }, { es: "I", visual: "🏝️" },
+      { es: "Jota", visual: "🦒" }, { es: "Ka", visual: "🐨" }, { es: "Ele", visual: "🦁" },
+      { es: "Eme", visual: "🍎" }, { es: "Ene", visual: "☁️" }, { es: "Eñe", visual: "🪅" },
+      { es: "O", visual: "🐻" }, { es: "Pe", visual: "🐧" }, { es: "Cu", visual: "🧀" },
+      { es: "Ere", visual: "🤖" }, { es: "Ese", visual: "🐍" }, { es: "Te", visual: "🐯" },
+      { es: "U", visual: "🍇" }, { es: "Uve", visual: "🐄" }, { es: "Uve doble", visual: "🪟" },
+      { es: "Equis", visual: "🎷" }, { es: "I griega", visual: "🪀" }, { es: "Ceta", visual: "🦊" }
+    ].map((item, idx) => ({ ...item, ptMain: String.fromCharCode(65 + (idx > 14 ? idx - 1 : idx)) }));
+    alfabeto[14].ptMain = "Ñ";
+
+    const numEspeciaisES = { 
+      1: "uno", 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco", 6: "seis", 7: "siete", 8: "ocho", 9: "nueve",
+      10: "diez", 11: "once", 12: "doce", 13: "trece", 14: "catorce", 15: "quince", 
+      16: "dieciséis", 17: "diecisiete", 18: "dieciocho", 19: "diecinueve", 20: "veinte", 
+      21: "veintiuno", 22: "veintidós", 23: "veintitrés", 24: "veinticuatro", 25: "veinticinco",
+      26: "veintiséis", 27: "veintisiete", 28: "veintiocho", 29: "veintinueve",
+      30: "treinta", 40: "cuarenta", 50: "cincuenta", 60: "sesenta", 70: "setenta",
+      80: "ochenta", 90: "noventa", 100: "cien", 200: "doscientos", 300: "trescientos",
+      400: "cuatrocientos", 500: "quinientos", 600: "seiscientos", 700: "setecientos",
+      800: "ochocientos", 900: "novecientos", 
+      1000: "mil", 2000: "dos mil", 10000: "diez mil", 100000: "cien mil", 1000000: "un millón"
+    };
+    
+    function getNumeroEspanhol(n) {
+      if (n in numEspeciaisES) return numEspeciaisES[n];
+      return "";
+    }
+    
+    const numeros = [];
+    for (let i = 1; i <= 29; i++) {
+      numeros.push({ ptMain: i.toString(), es: getNumeroEspanhol(i), visual: i.toString() });
+    }
+    const numerosGrandes = [30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 10000, 100000, 1000000];
+    numerosGrandes.forEach(n => {
+      numeros.push({ ptMain: n.toString(), es: getNumeroEspanhol(n), visual: n.toString() });
+    });
+
+    const cores = [
+      { ptMain: "Azul", es: "Azul", visual: "🟦" }, { ptMain: "Vermelho", es: "Rojo", visual: "🟥" },
+      { ptMain: "Verde", es: "Verde", visual: "🟩" }, { ptMain: "Amarelo", es: "Amarillo", visual: "🟨" },
+      { ptMain: "Preto", es: "Negro", visual: "⬛" }, { ptMain: "Branco", es: "Blanco", visual: "⬜" },
+      { ptMain: "Laranja", es: "Naranja", visual: "🟧" }, { ptMain: "Roxo", es: "Morado", visual: "🟪" },
+      { ptMain: "Castanho", es: "Marrón", visual: "🟫" }, { ptMain: "Rosa", es: "Rosa", visual: "🩷" },
+      { ptMain: "Cinzento", es: "Gris", visual: "🩶" }, { ptMain: "Dourado", es: "Dorado", visual: "🟡" },
+      { ptMain: "Turquesa", es: "Turquesa", visual: "🩵" }, { ptMain: "Violeta", es: "Violeta", visual: "💜" },
+      { ptMain: "Coral", es: "Coral", visual: "🧡" }
+    ];
+
+    // TOP 10 OBJETOS
+    const objetos = [
+      { es: "Teléfono", visual: "📱", ptMain: "Telefone" },
+      { es: "Ordenador", visual: "💻", ptMain: "Computador" },
+      { es: "Reloj", visual: "⌚", ptMain: "Relógio" },
+      { es: "Teclado", visual: "⌨️", ptMain: "Teclado" },
+      { es: "Ratón", visual: "🖱️", ptMain: "Rato" },
+      { es: "Impresora", visual: "🖨️", ptMain: "Impressora" },
+      { es: "Cámara", visual: "📷", ptMain: "Câmara" },
+      { es: "Televisión", visual: "📺", ptMain: "Televisão" },
+      { es: "Bombilla", visual: "💡", ptMain: "Lâmpada" },
+      { es: "Lápiz", visual: "✏️", ptMain: "Lápis" }
+    ];
+
+    // TOP 10 ANIMAIS
+    const animais = [
+      { es: "Perro", visual: "🐶", ptMain: "Cão" },
+      { es: "Gato", visual: "🐱", ptMain: "Gato" },
+      { es: "León", visual: "🦁", ptMain: "Leão" },
+      { es: "Tigre", visual: "🐯", ptMain: "Tigre" },
+      { es: "Oso", visual: "🐻", ptMain: "Urso" },
+      { es: "Elefante", visual: "🐘", ptMain: "Elefante" },
+      { es: "Jirafa", visual: "🦒", ptMain: "Girafa" },
+      { es: "Cebra", visual: "🦓", ptMain: "Zebra" },
+      { es: "Mono", visual: "🐒", ptMain: "Macaco" },
+      { es: "Lobo", visual: "🐺", ptMain: "Lobo" }
+    ];
+
+    // TOP 20 ALIMENTOS
+    const alimentos = [
+      { es: "Manzana", visual: "🍎", ptMain: "Maçã" },
+      { es: "Plátano", visual: "🍌", ptMain: "Banana" },
+      { es: "Naranja", visual: "🍊", ptMain: "Laranja" },
+      { es: "Pan", visual: "🍞", ptMain: "Pão" },
+      { es: "Queso", visual: "🧀", ptMain: "Queijo" },
+      { es: "Arroz", visual: "🍚", ptMain: "Arroz" },
+      { es: "Carne", visual: "🥩", ptMain: "Carne" },
+      { es: "Sopa", visual: "🍲", ptMain: "Sopa" },
+      { es: "Pera", visual: "🍐", ptMain: "Pera" },
+      { es: "Melocotón", visual: "🍑", ptMain: "Pêssego" },
+      { es: "Uva", visual: "🍇", ptMain: "Uva" },
+      { es: "Sandía", visual: "🍉", ptMain: "Melancia" },
+      { es: "Melón", visual: "🍈", ptMain: "Melão" },
+      { es: "Piña", visual: "🍍", ptMain: "Ananás" },
+      { es: "Mango", visual: "🥭", ptMain: "Manga" },
+      { es: "Kiwi", visual: "🥝", ptMain: "Kiwi" },
+      { es: "Aguacate", visual: "🥑", ptMain: "Abacate" },
+      { es: "Limón", visual: "🍋", ptMain: "Limão" },
+      { es: "Tomate", visual: "🍅", ptMain: "Tomate" },
+      { es: "Zanahoria", visual: "🥕", ptMain: "Cenoura" }
+    ];
+
+    // TOP 10 ROUPAS
+    const roupas = [
+      { es: "Camiseta", visual: "👕", ptMain: "Camiseta" },
+      { es: "Camisa", visual: "👔", ptMain: "Camisa" },
+      { es: "Pantalones", visual: "👖", ptMain: "Calças" },
+      { es: "Vestido", visual: "👗", ptMain: "Vestido" },
+      { es: "Falda", visual: "🥻", ptMain: "Saia" },
+      { es: "Chaqueta", visual: "🧥", ptMain: "Casaco" },
+      { es: "Abrigo", visual: "🥼", ptMain: "Sobretudo" },
+      { es: "Sudadera", visual: "🥋", ptMain: "Camisola" },
+      { es: "Calcetines", visual: "🧦", ptMain: "Meias" },
+      { es: "Zapatos", visual: "👟", ptMain: "Sapatos" }
+    ];
+
+    // TOP 40 CORPO HUMANO
+    const corpoHumano = [
+      { es: "Cabeza", visual: "🗣️", ptMain: "Cabeça" },
+      { es: "Cara", visual: "😀", ptMain: "Rosto" },
+      { es: "Pelo", visual: "🦱", ptMain: "Cabelo" },
+      { es: "Ojo", visual: "👁️", ptMain: "Olho" },
+      { es: "Oreja", visual: "👂", ptMain: "Orelha" },
+      { es: "Nariz", visual: "👃", ptMain: "Nariz" },
+      { es: "Boca", visual: "👄", ptMain: "Boca" },
+      { es: "Diente", visual: "🦷", ptMain: "Dente" },
+      { es: "Lengua", visual: "👅", ptMain: "Língua" },
+      { es: "Labio", visual: "💋", ptMain: "Lábio" },
+      { es: "Cuello", visual: "🧣", ptMain: "Pescoço" },
+      { es: "Hombro", visual: "👕", ptMain: "Ombro" },
+      { es: "Brazo", visual: "💪", ptMain: "Braço" },
+      { es: "Codo", visual: "📐", ptMain: "Cotovelo" },
+      { es: "Muñeca", visual: "⌚", ptMain: "Pulso" },
+      { es: "Mano", visual: "🤚", ptMain: "Mão" },
+      { es: "Dedo", visual: "👆", ptMain: "Dedo" },
+      { es: "Uña", visual: "💅", ptMain: "Unha" },
+      { es: "Pecho", visual: "🎽", ptMain: "Peito" },
+      { es: "Espalda", visual: "🧍", ptMain: "Costas" },
+      { es: "Barriga", visual: "🫄", ptMain: "Barriga" },
+      { es: "Cintura", visual: "🩳", ptMain: "Cintura" },
+      { es: "Cadera", visual: "👖", ptMain: "Anca" },
+      { es: "Pierna", visual: "🦵", ptMain: "Perna" },
+      { es: "Rodilla", visual: "🦿", ptMain: "Joelho" },
+      { es: "Tobillo", visual: "🥾", ptMain: "Tornozelo" },
+      { es: "Pie", visual: "🦶", ptMain: "Pé" },
+      { es: "Talón", visual: "👠", ptMain: "Calcanhar" },
+      { es: "Corazón", visual: "🫀", ptMain: "Coração" },
+      { es: "Pulmones", visual: "🫁", ptMain: "Pulmões" },
+      { es: "Cerebro", visual: "🧠", ptMain: "Cérebro" },
+      { es: "Hueso", visual: "🦴", ptMain: "Osso" },
+      { es: "Sangre", visual: "🩸", ptMain: "Sangue" },
+      { es: "Músculo", visual: "🏋️", ptMain: "Músculo" },
+      { es: "Piel", visual: "🖐️", ptMain: "Pele" },
+      { es: "Vena", visual: "💉", ptMain: "Veia" },
+      { es: "Arteria", visual: "🔴", ptMain: "Artéria" },
+      { es: "Estómago", visual: "🥣", ptMain: "Estômago" },
+      { es: "Hígado", visual: "🧫", ptMain: "Fígado" },
+      { es: "Riñón", visual: "🫘", ptMain: "Rim" }
+    ];
+
+    // TOP 20 TRANSPORTES (10 originais + 10 adicionados)
+    const transportes = [
+      { es: "Coche", visual: "🚗", ptMain: "Carro" },
+      { es: "Autobús", visual: "🚌", ptMain: "Autocarro" },
+      { es: "Tren", visual: "🚆", ptMain: "Comboio" },
+      { es: "Avión", visual: "✈️", ptMain: "Avião" },
+      { es: "Barco", visual: "🚢", ptMain: "Barco" },
+      { es: "Bicicleta", visual: "🚲", ptMain: "Bicicleta" },
+      { es: "Motocicleta", visual: "🏍️", ptMain: "Motocicleta" },
+      { es: "Helicóptero", visual: "🚁", ptMain: "Helicóptero" },
+      { es: "Cohete", visual: "🚀", ptMain: "Foguete" },
+      { es: "Submarino", visual: "🤿", ptMain: "Submarino" },
+      // 10 CARDS ADICIONADOS
+      { es: "Tranvía", visual: "🚊", ptMain: "Elétrico" },
+      { es: "Tractor", visual: "🚜", ptMain: "Trator" },
+      { es: "Camión", visual: "🚛", ptMain: "Camião" },
+      { es: "Furgoneta", visual: "🚐", ptMain: "Carrinha" },
+      { es: "Taxi", visual: "🚕", ptMain: "Táxi" },
+      { es: "Metro", visual: "🚇", ptMain: "Metropolitano" },
+      { es: "Monorriel", visual: "🚝", ptMain: "Monotrilho" },
+      { es: "Teleférico", visual: "🚡", ptMain: "Teleférico" },
+      { es: "Globo aerostático", visual: "🎈", ptMain: "Balão de ar quente" },
+      { es: "Velero", visual: "⛵", ptMain: "Veleiro" }
+    ];
+
+    const catalogosPadrao = {
+      alfabeto: { nome: "Alfabeto 🅰️", data: alfabeto },
+      numeros: { nome: "Números 🔢", data: numeros },
+      cores: { nome: "Cores 🎨", data: cores },
+      objetos: { nome: "Objetos 📦", data: objetos },
+      animais: { nome: "Animais 🦁", data: animais },
+      alimentos: { nome: "Alimentos 🍕", data: alimentos },
+      roupas: { nome: "Roupas 👕", data: roupas },
+      corpo: { nome: "Corpo Humano 🧠", data: corpoHumano },
+      transportes: { nome: "Transportes 🚗", data: transportes }
+    };
+
+    const synth = window.speechSynthesis;
+
+    function falarEspanhol(texto, card, autoReturn = true) {
+      if (synth.speaking) synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = 'es-ES';
+      utterance.rate = 0.88;
+
+      if (autoReturn) {
+        let jaVoltou = false;
+        const voltar = () => {
+          if (jaVoltou) return;
+          jaVoltou = true;
+          card.classList.remove("flipped");
+        };
+        utterance.onend = () => setTimeout(voltar, 1200);
+        utterance.onerror = () => setTimeout(voltar, 1200);
+        const tempoMaximo = Math.max(1800, texto.length * 110) + 1200;
+        setTimeout(voltar, tempoMaximo);
+      }
+
+      synth.speak(utterance);
+    }
+
+    // FUNÇÃO DE TRADUÇÃO USANDO GOOGLE TRANSLATE
+    async function traduzirParaEspanhol(texto) {
+      if (!texto || texto.trim() === '') return texto;
+      
+      const textoLimpo = texto.trim();
+      
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=es&dt=t&q=${encodeURIComponent(textoLimpo)}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+          const traducao = data[0][0][0];
+          return traducao.charAt(0).toUpperCase() + traducao.slice(1);
+        }
+      } catch (error) {
+        console.error('Erro na tradução via Google:', error);
+      }
+      
+      return textoLimpo.charAt(0).toUpperCase() + textoLimpo.slice(1);
+    }
+
+    function renderApp() {
+      const tabsContainer = document.getElementById('tabs-container');
+      const wrapper = document.getElementById('grids-wrapper');
+      
+      tabsContainer.innerHTML = "";
+      wrapper.innerHTML = "";
+
+      const keysPadrao = Object.keys(catalogosPadrao);
+      const todasKeys = keysPadrao.concat(categoriasCustomizadas);
+
+      todasKeys.forEach((catKey) => {
+        const isCustomCat = categoriasCustomizadas.includes(catKey);
+        
+        const dadosPadrao = catalogosPadrao[catKey] ? catalogosPadrao[catKey].data : [];
+        const cardsMovidos = customCards.filter(c => c.categoriaDestino === catKey);
+        const todosOsCards = [...dadosPadrao, ...cardsMovidos];
+
+        const nomeCat = catalogosPadrao[catKey] ? catalogosPadrao[catKey].nome : catKey;
+
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${currentActiveTab === catKey ? 'active' : ''}`;
+        
+        let deleteBtnHtml = isCustomCat 
+          ? `<span class="btn-delete-cat" title="Excluir este catálogo" onclick="excluirCategoriaCustomizada('${catKey}', event)">✕</span>` 
+          : '';
+
+        btn.innerHTML = `<span>${nomeCat} (${todosOsCards.length})</span>${deleteBtnHtml}`;
+        btn.onclick = (e) => {
+          if (!e.target.classList.contains('btn-delete-cat')) {
+            switchCategory(catKey);
+          }
+        };
+        tabsContainer.appendChild(btn);
+
+        const grid = document.createElement('div');
+        grid.id = `grid-${catKey}`;
+        grid.className = `grid-container ${currentActiveTab === catKey ? '' : 'hidden'}`;
+        wrapper.appendChild(grid);
+
+        renderGridData(todosOsCards, grid.id, catKey);
+      });
+
+      // Botão da Lixeira
+      const btnLixeira = document.createElement('button');
+      btnLixeira.className = `tab-btn lixeira ${currentActiveTab === 'lixeira' ? 'active' : ''}`;
+      btnLixeira.innerText = `🗑️ Lixeira (${lixeira.length})`;
+      btnLixeira.onclick = () => switchCategory('lixeira');
+      tabsContainer.appendChild(btnLixeira);
+
+      // Grid da Lixeira
+      const gridLixeira = document.createElement('div');
+      gridLixeira.id = 'grid-lixeira';
+      gridLixeira.className = `grid-container ${currentActiveTab === 'lixeira' ? '' : 'hidden'}`;
+      wrapper.appendChild(gridLixeira);
+
+      const btnCustom = document.createElement('button');
+      btnCustom.className = `tab-btn ${currentActiveTab === 'custom' ? 'active' : ''}`;
+      btnCustom.innerText = `Personalizado ✨ (${customCards.filter(c => !c.categoriaDestino).length})`;
+      btnCustom.onclick = () => switchCategory('custom');
+      tabsContainer.appendChild(btnCustom);
+
+      switchCategory(currentActiveTab);
+    }
+
+    function renderGridData(data, containerId, catKey) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+
+      if (catKey === 'lixeira') {
+        if (data.length === 0) {
+          const vazio = document.createElement('div');
+          vazio.className = 'lixeira-vazia';
+          vazio.innerHTML = '🗑️ Lixeira vazia<br><span style="font-size: 14px;">Os cards excluídos aparecerão aqui</span>';
+          fragment.appendChild(vazio);
+        } else {
+          data.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            let restoreBtn = `<button class="btn-restore-card" onclick="restaurarCardDaLixeira(${item.id}, event)" title="Restaurar">↩️</button>`;
+            let deletePermanentBtn = `<button class="btn-delete-permanent" onclick="excluirPermanentementeDaLixeira(${item.id}, event)" title="Excluir Permanentemente">✕</button>`;
+
+            let frontContent = `<div class="main-title">${item.ptMain}</div>`;
+            let backMedia = `<div class="visual">${item.visual || '✨'}</div>`;
+
+            card.innerHTML = `
+              <div class="card-inner">
+                <div class="card-front">
+                  ${restoreBtn}
+                  ${deletePermanentBtn}
+                  ${frontContent}
+                </div>
+                <div class="card-back">
+                  ${restoreBtn}
+                  ${deletePermanentBtn}
+                  ${backMedia}
+                  <div class="es-text">${item.es}</div>
+                </div>
+              </div>
+            `;
+
+            card.addEventListener("click", () => {
+              const isFlipped = card.classList.toggle("flipped");
+              if (isFlipped) falarEspanhol(item.es, card, true);
+            });
+
+            fragment.appendChild(card);
+          });
+        }
+        container.appendChild(fragment);
+        return;
+      }
+
+      // Catálogos padrão - CORES não tem botão de excluir
+      const catalogoPermiteExcluir = ['objetos', 'animais', 'alimentos', 'roupas', 'corpo', 'transportes'];
+
+      data.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        let deleteBtn = '';
+        if (catalogoPermiteExcluir.includes(catKey)) {
+          if (item.id) {
+            deleteBtn = `<button class="btn-delete-card" onclick="excluirCardPersonalizadoDoCatalogo(${item.id}, '${catKey}', event)">✕</button>`;
+          } else {
+            deleteBtn = `<button class="btn-delete-card" onclick="excluirCardDoCatalogo('${catKey}', '${item.es}', event)">✕</button>`;
+          }
+        }
+
+        let cardActions = item.id ? `
+          <div class="card-actions">
+            <button class="btn-action" title="Editar Nome" onclick="editCardName(${item.id}, event)">✏️</button>
+            <button class="btn-action" title="Excluir Card" onclick="deleteCustomCard(${item.id}, event)">✕</button>
+          </div>
+        ` : '';
+
+        let fotoBtn = item.id ? `<div class="btn-foto-pill" onclick="uploadPhotoForCard(${item.id}, event)">📷 Foto</div>` : '';
+
+        let frontContent = "";
+        if (item.imageOnlyFront) {
+          frontContent = `<div class="visual-front">${item.visual}</div>`;
+        } else if (item.image) {
+          frontContent = `<img src="${item.image}" class="card-img-large">`;
+        } else {
+          frontContent = `<div class="main-title">${item.ptMain}</div>`;
+        }
+
+        let backMedia = item.image 
+          ? `<img src="${item.image}" class="card-img-large">` 
+          : `<div class="visual">${item.visual || '✨'}</div>`;
+
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">
+              ${cardActions}
+              ${deleteBtn}
+              ${frontContent}
+              ${fotoBtn}
+            </div>
+            <div class="card-back">
+              ${cardActions}
+              ${deleteBtn}
+              ${backMedia}
+              <div class="es-text">${item.es}</div>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          const isFlipped = card.classList.toggle("flipped");
+          if (isFlipped) falarEspanhol(item.es, card, true);
+        });
+
+        fragment.appendChild(card);
+      });
+
+      container.appendChild(fragment);
+    }
+
+    function excluirCardDoCatalogo(catKey, esValue, event) {
+      event.stopPropagation();
+      if (confirm(`Deseja excluir o card "${esValue}" do catálogo ${catKey}?`)) {
+        const catalogo = catalogosPadrao[catKey];
+        if (catalogo) {
+          const index = catalogo.data.findIndex(item => item.es === esValue);
+          if (index !== -1) {
+            const cardRemovido = catalogo.data[index];
+            lixeira.push({ 
+              ...cardRemovido, 
+              id: Date.now() + Math.random(),
+              origem: catKey,
+              tipo: 'padrao',
+              posicao: index
+            });
+            localStorage.setItem('lixeira_flashcards', JSON.stringify(lixeira));
+            catalogo.data.splice(index, 1);
+            renderApp();
+          }
+        }
+      }
+    }
+
+    function excluirCardPersonalizadoDoCatalogo(id, catKey, event) {
+      event.stopPropagation();
+      const card = customCards.find(c => c.id === id);
+      if (!card) return;
+      
+      if (confirm(`Deseja excluir o card "${card.ptMain}" do catálogo ${catKey}?`)) {
+        lixeira.push({ 
+          ...card, 
+          origem: catKey,
+          tipo: 'personalizado'
+        });
+        localStorage.setItem('lixeira_flashcards', JSON.stringify(lixeira));
+        customCards = customCards.filter(c => c.id !== id);
+        saveAndRenderCustom();
+        renderApp();
+        switchCategory(catKey);
+      }
+    }
+
+    function restaurarCardDaLixeira(id, event) {
+      event.stopPropagation();
+      const index = lixeira.findIndex(item => item.id === id);
+      if (index === -1) return;
+      
+      const card = lixeira[index];
+      if (confirm(`Deseja restaurar o card "${card.ptMain}"?`)) {
+        lixeira.splice(index, 1);
+        localStorage.setItem('lixeira_flashcards', JSON.stringify(lixeira));
+        
+        if (card.tipo === 'personalizado') {
+          const novoCard = { ...card };
+          delete novoCard.origem;
+          delete novoCard.tipo;
+          delete novoCard.id;
+          novoCard.id = Date.now();
+          customCards.push(novoCard);
+          saveAndRenderCustom();
+        } else if (card.tipo === 'padrao') {
+          const catKey = card.origem || 'objetos';
+          const catalogo = catalogosPadrao[catKey];
+          if (catalogo) {
+            const novoCard = { ...card };
+            delete novoCard.origem;
+            delete novoCard.tipo;
+            delete novoCard.id;
+            delete novoCard.posicao;
+            
+            const pos = card.posicao || 0;
+            if (pos < catalogo.data.length) {
+              catalogo.data.splice(pos, 0, novoCard);
+            } else {
+              catalogo.data.push(novoCard);
+            }
+          }
+        }
+        renderApp();
+        switchCategory('lixeira');
+      }
+    }
+
+    function excluirPermanentementeDaLixeira(id, event) {
+      event.stopPropagation();
+      const card = lixeira.find(item => item.id === id);
+      if (!card) return;
+      
+      if (confirm(`Deseja excluir PERMANENTEMENTE o card "${card.ptMain}"? Esta ação não pode ser desfeita!`)) {
+        lixeira = lixeira.filter(item => item.id !== id);
+        localStorage.setItem('lixeira_flashcards', JSON.stringify(lixeira));
+        renderApp();
+        switchCategory('lixeira');
+      }
+    }
+
+    function verificarDuplicado(nome, idIgnorar = null) {
+      const nomeLower = nome.trim().toLowerCase();
+      
+      const todosCards = customCards.filter(c => c.id !== idIgnorar);
+      const existe = todosCards.some(c => c.ptMain.toLowerCase() === nomeLower);
+      
+      if (existe) {
+        return confirm(`⚠️ Já existe um card com o nome "${nome.trim()}"!\n\nDeseja criar mesmo assim?`);
+      }
+      return true;
+    }
+
+    async function addCustomCard() {
+      const nameInput = document.getElementById('custom-input-name');
+      const ptName = nameInput.value.trim();
+
+      if (!ptName) return alert("Escreva o nome em Português.");
+
+      const permitir = verificarDuplicado(ptName);
+      if (!permitir) return;
+
+      const esName = await traduzirParaEspanhol(ptName);
+
+      const newCard = {
+        id: Date.now(),
+        ptMain: ptName,
+        es: esName,
+        visual: '✨',
+        image: "",
+        categoriaDestino: ""
+      };
+
+      customCards.push(newCard);
+      saveAndRenderCustom();
+      renderApp();
+      switchCategory('custom');
+      nameInput.value = "";
+    }
+
+    function criarNovaCategoria() {
+      const input = document.getElementById('custom-cat-name');
+      const nome = input.value.trim();
+
+      if (!nome) return alert("Escreva o nome do catálogo.");
+      if (categoriasCustomizadas.includes(nome) || catalogosPadrao[nome]) {
+        return alert("Catálogo já existe.");
+      }
+
+      categoriasCustomizadas.push(nome);
+      localStorage.setItem('cat_customizadas', JSON.stringify(categoriasCustomizadas));
+      input.value = "";
+      renderApp();
+      saveAndRenderCustom();
+      switchCategory('custom');
+    }
+
+    function excluirCategoriaCustomizada(catNome, event) {
+      event.stopPropagation();
+      if (confirm(`Tem certeza que deseja excluir o catálogo "${catNome}"? Os cards deste catálogo serão excluídos também.`)) {
+        categoriasCustomizadas = categoriasCustomizadas.filter(c => c !== catNome);
+        localStorage.setItem('cat_customizadas', JSON.stringify(categoriasCustomizadas));
+
+        const cardsParaExcluir = customCards.filter(c => c.categoriaDestino === catNome);
+        cardsParaExcluir.forEach(card => {
+          lixeira.push({ ...card, origem: catNome, tipo: 'personalizado' });
+        });
+        localStorage.setItem('lixeira_flashcards', JSON.stringify(lixeira));
+
+        customCards = customCards.filter(c => c.categoriaDestino !== catNome);
+
+        saveAndRenderCustom();
+        renderApp();
+        switchCategory('custom');
+      }
+    }
+
+    function moverCard(id, destino, event) {
+      event.stopPropagation();
+      const card = customCards.find(c => c.id === id);
+      if (card) {
+        card.categoriaDestino = destino;
+        saveAndRenderCustom();
+        renderApp();
+        switchCategory('custom');
+      }
+    }
+
+    function deleteCustomCard(id, event) {
+      event.stopPropagation();
+      const card = customCards.find(c => c.id === id);
+      if (!card) return;
+      
+      if (confirm(`Deseja excluir o card "${card.ptMain}"?`)) {
+        lixeira.push({ ...card, tipo: 'personalizado' });
+        localStorage.setItem('lixeira_flashcards', JSON.stringify(lixeira));
+        customCards = customCards.filter(c => c.id !== id);
+        saveAndRenderCustom();
+        renderApp();
+      }
+    }
+
+    async function editCardName(id, event) {
+      event.stopPropagation();
+      const card = customCards.find(c => c.id === id);
+      if (!card) return;
+      const novoNome = prompt("Novo nome em Português:", card.ptMain);
+      if (novoNome === null) return;
+      const nomeTrim = novoNome.trim();
+      if (!nomeTrim) return;
+      
+      const permitir = verificarDuplicado(nomeTrim, id);
+      if (!permitir) return;
+      
+      card.ptMain = nomeTrim;
+      card.es = await traduzirParaEspanhol(nomeTrim);
+      saveAndRenderCustom();
+      renderApp();
+    }
+
+    function uploadPhotoForCard(id, event) {
+      event.stopPropagation();
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = evt => {
+            const card = customCards.find(c => c.id === id);
+            if (card) {
+              card.image = evt.target.result;
+              saveAndRenderCustom();
+              renderApp();
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+
+    function saveAndRenderCustom() {
+      localStorage.setItem('custom_flashcards', JSON.stringify(customCards));
+      renderCustomGrid();
+    }
+
+    function toggleMenu(id, event) {
+      event.stopPropagation();
+      const menu = document.getElementById(`menu-${id}`);
+      menu.classList.toggle('hidden');
+    }
+
+    function renderCustomGrid() {
+      const container = document.getElementById('grid-custom');
+      if (!container) return;
+      container.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+
+      const unassignedCards = customCards.filter(c => !c.categoriaDestino);
+
+      const todosCatalogos = Object.keys(catalogosPadrao).concat(categoriasCustomizadas);
+
+      unassignedCards.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card card-large";
+
+        let mediaFront = item.image 
+          ? `<img src="${item.image}" class="card-img-large" style="margin-top: 2px; width:75px; height:75px; object-fit:cover; border-radius:10px; border:2px solid #ffffff; box-shadow:0 2px 5px rgba(0,0,0,0.2);">` 
+          : `<div class="main-title" style="font-size: 16px; margin-bottom: 2px;">${item.ptMain}</div><div class="photo-btn-placeholder-large" onclick="uploadPhotoForCard(${item.id}, event)"><span>📷</span><span>Add Foto</span></div>`;
+
+        let mediaBack = item.image 
+          ? `<img src="${item.image}" class="card-img-large" style="width:75px; height:75px; object-fit:cover; border-radius:10px; border:2px solid #ffffff; box-shadow:0 2px 5px rgba(0,0,0,0.2);">` 
+          : `<div class="visual">${item.visual || '✨'}</div>`;
+
+        let opcoesDestino = todosCatalogos.map(catKey => {
+          const catNome = catalogosPadrao[catKey] ? catalogosPadrao[catKey].nome : catKey;
+          return `<button onclick="moverCard(${item.id}, '${catKey}', event)">➔ ${catNome}</button>`;
+        }).join('');
+
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">
+              ${mediaFront}
+              <div class="btn-foto-pill" onclick="uploadPhotoForCard(${item.id}, event)">✏️ Foto</div>
+            </div>
+            <div class="card-back">
+              <div class="card-actions">
+                <button class="btn-action" title="Editar Nome" onclick="editCardName(${item.id}, event)">✏️</button>
+                <button class="btn-action" title="Mover Card" onclick="toggleMenu(${item.id}, event)">☰</button>
+                <button class="btn-action" title="Excluir Card" onclick="deleteCustomCard(${item.id}, event)">✕</button>
+              </div>
+              <div id="menu-${item.id}" class="menu-destinos hidden">
+                ${opcoesDestino}
+              </div>
+              ${mediaBack}
+              <div class="es-text">${item.es}</div>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          const isFlipped = card.classList.toggle("flipped");
+          if (isFlipped) falarEspanhol(item.es, card, false);
+        });
+
+        fragment.appendChild(card);
+      });
+
+      container.appendChild(fragment);
+    }
+
+    function switchCategory(cat) {
+      currentActiveTab = cat;
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      const allKeys = Object.keys(catalogosPadrao).concat(categoriasCustomizadas);
+
+      allKeys.forEach((c) => {
+        const grid = document.getElementById(`grid-${c}`);
+        if (grid) grid.classList.add("hidden");
+      });
+
+      const gridLixeira = document.getElementById('grid-lixeira');
+      if (gridLixeira) gridLixeira.classList.add("hidden");
+
+      tabBtns.forEach(btn => btn.classList.remove("active"));
+
+      if (cat === 'lixeira') {
+        if (gridLixeira) gridLixeira.classList.remove("hidden");
+        tabBtns.forEach(btn => {
+          if (btn.innerText.includes('🗑️')) btn.classList.add("active");
+        });
+        renderLixeira();
+      } else if (cat === 'custom') {
+        const customContainer = document.getElementById('container-custom');
+        customContainer.classList.remove("hidden");
+        tabBtns.forEach(btn => {
+          if (btn.innerText.includes('Personalizado')) btn.classList.add("active");
+        });
+        renderCustomGrid();
+      } else {
+        const customContainer = document.getElementById('container-custom');
+        customContainer.classList.add("hidden");
+        const grid = document.getElementById(`grid-${cat}`);
+        if (grid) grid.classList.remove("hidden");
+        allKeys.forEach((c, index) => {
+          if (c === cat && tabBtns[index]) {
+            tabBtns[index].classList.add("active");
+          }
+        });
+      }
+    }
+
+    function renderLixeira() {
+      const container = document.getElementById('grid-lixeira');
+      if (!container) return;
+      renderGridData(lixeira, 'grid-lixeira', 'lixeira');
+    }
+
+    function entrarNoApp() {
+      const splash = document.getElementById('splash-screen');
+      if (splash) {
+        splash.classList.add('splash-hide');
+        setTimeout(() => splash.remove(), 550);
+      }
+    }
+
+    renderApp();
+  </script>
+</body>
+</html>
