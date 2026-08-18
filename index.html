@@ -1571,6 +1571,27 @@
         setTimeout(() => splash.remove(), 550);
       }
     }
+    let deferredPrompt = window.deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('btn-instalar-app');
+  if (btn) btn.style.display = 'inline-block';
+});
+
+async function instalarAppPWA() {
+  if (!deferredPrompt) {
+    alert("O navegador ainda está preparando a instalação ou este dispositivo exige que você use o menu de opções (3 pontinhos) para adicionar à tela inicial.");
+    return;
+  }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    console.log('Usuário aceitou instalar o PWA');
+  }
+  deferredPrompt = null;
+}
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/aprendapalavras/sw.js')
