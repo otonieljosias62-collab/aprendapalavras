@@ -1571,7 +1571,13 @@
         setTimeout(() => splash.remove(), 550);
       }
     }
-
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/aprendapalavras/sw.js')
+      .then(reg => console.log('Service Worker registrado com sucesso!', reg.scope))
+      .catch(err => console.log('Falha ao registrar o Service Worker:', err));
+  });
+}
     renderApp();
   </script>
 </body>
