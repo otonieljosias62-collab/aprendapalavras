@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flashcards Educativos - Aprende Conmigo</title>
+
+  <!-- VÍNCULO DO MANIFEST PARA GERAR O APP NA TELA DO CELULAR -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#10b981">
+
   <style>
     :root {
       --bg-color: #f1f5f9;
@@ -649,12 +654,13 @@
   <h1>Aprende Conmigo</h1>
   <p class="info-text">Toca no card para virar e ouvir em Espanhol!</p>
 
+  <!-- Botão de Instalar App -->
+  <button id="btn-instalar-app" onclick="instalarAppPWA()">
+    📲 Baixar / Instalar App
+  </button>
+
   <div class="tabs" id="tabs-container"></div>
-  
-<button id="btn-instalar-app" onclick="instalarAppPWA()">
-📲 Baixar / Instalar App
-</button>
-  
+
   <div id="grids-wrapper" style="width: 100%; max-width: 1000px;"></div>
 
   <!-- ABA PERSONALIZADA -->
@@ -673,6 +679,23 @@
   </div>
 
   <script>
+    // REGISTRO DO SERVICE WORKER (Busca alterações no GitHub e atualiza a app automaticamente)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          reg.onupdatefound = () => {
+            const installingWorker = reg.installing;
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Atualizações no GitHub são detectadas e aplicadas
+                window.location.reload();
+              }
+            };
+          };
+        }).catch(err => console.log('Erro ao registrar Service Worker:', err));
+      });
+    }
+
     let categoriasCustomizadas = JSON.parse(localStorage.getItem('cat_customizadas') || '[]');
     let customCards = JSON.parse(localStorage.getItem('custom_flashcards') || '[]');
     let lixeira = JSON.parse(localStorage.getItem('lixeira_flashcards') || '[]');
@@ -682,9 +705,10 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
+      const btn = document.getElementById('btn-instalar-app');
+      if (btn) btn.style.display = 'inline-flex';
     });
 
-    // Ocultar automaticamente se já estiver rodando instalado no celular
     window.addEventListener('DOMContentLoaded', () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
       if (isStandalone) {
@@ -693,23 +717,17 @@
       }
     });
 
-    function instalarAppPWA() {
+    async function instalarAppPWA() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            document.getElementById('btn-instalar-app').style.display = 'none';
-          }
-          deferredPrompt = null;
-        });
-      } else {
-        // Removido o alert feio! Se o navegador não disparou o prompt nativo, 
-        // o botão simplesmente executa uma ação silenciosa ou pode ser ocultado se preferir.
-        const btn = document.getElementById('btn-instalar-app');
-        if (btn) {
-          btn.style.opacity = '0.7';
-          setTimeout(() => btn.style.opacity = '1', 300);
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          const btn = document.getElementById('btn-instalar-app');
+          if (btn) btn.style.display = 'none';
         }
+        deferredPrompt = null;
+      } else {
+        alert("Para instalar na tela do seu celular:\n\n- Android (Chrome): Toque nos 3 pontinhos no canto superior e selecione 'Instalar aplicativo' ou 'Adicionar à tela inicial'.\n- iPhone (Safari): Toque no botão Compartilhar e selecione 'Adicionar à Tela de Início'.");
       }
     }
 
@@ -1570,26 +1588,7 @@
         setTimeout(() => splash.remove(), 550);
       }
     }
-    let deferredPrompt = window.deferredPrompt;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const btn = document.getElementById('btn-instalar-app');
-  if (btn) btn.style.display = 'inline-block';
-});
-
-async function instalarAppPWA() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`Resultado da instalação: ${outcome}`);
-    deferredPrompt = null;
-  } else {
-    // Caso o navegador ainda não tenha liberado o gatilho, orientamos o usuário com clareza
-    alert("Para instalar o aplicativo, toque nos três pontinhos (...) no canto superior direito do seu navegador e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.");
-  }
-}
     renderApp();
   </script>
 </body>
