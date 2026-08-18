@@ -35,6 +35,28 @@
       text-align: center;
     }
 
+    /* Botão de Instalar App */
+    #btn-instalar-app {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+      margin-bottom: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    #btn-instalar-app:active {
+      transform: scale(0.96);
+    }
+
     .tabs {
       display: flex;
       flex-wrap: wrap;
@@ -116,8 +138,11 @@
       background-color: transparent;
       height: 140px;
       perspective: 1000px;
+      -webkit-perspective: 1000px;
       cursor: pointer;
       position: relative;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .card.card-large {
@@ -129,13 +154,17 @@
       width: 100%;
       height: 100%;
       text-align: center;
+      transition: -webkit-transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
       transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+      -webkit-transform-style: preserve-3d;
       transform-style: preserve-3d;
       border-radius: 12px;
       box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+      will-change: transform;
     }
 
     .card.flipped .card-inner {
+      -webkit-transform: rotateY(180deg);
       transform: rotateY(180deg);
     }
 
@@ -145,6 +174,8 @@
       height: 100%;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
       border-radius: 12px;
       display: flex;
       flex-direction: column;
@@ -175,7 +206,8 @@
 
     .card-back {
       background-color: var(--card-back);
-      transform: rotateY(180deg);
+      -webkit-transform: rotateY(180deg) translateZ(0);
+      transform: rotateY(180deg) translateZ(0);
     }
 
     .card-back .visual {
@@ -614,13 +646,13 @@
     </div>
   </div>
 
-<h1>Aprende Conmigo</h1>
-<div style="text-align: center; margin-bottom: 10px;">
-  <a href="./dashcards%201.0.zip" download style="background: #10b981; color: white; padding: 6px 14px; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: bold; font-family: Arial, sans-serif; display: inline-block;">
-    📥 Baixar App
-  </a>
-</div>
+  <h1>Aprende Conmigo</h1>
   <p class="info-text">Toca no card para virar e ouvir em Espanhol!</p>
+
+  <!-- Botão de Instalar App (tenta disparar o prompt nativo sem alertas na tela) -->
+  <button id="btn-instalar-app" onclick="instalarAppPWA()">
+    📲 Baixar / Instalar App
+  </button>
 
   <div class="tabs" id="tabs-container"></div>
 
@@ -646,6 +678,41 @@
     let customCards = JSON.parse(localStorage.getItem('custom_flashcards') || '[]');
     let lixeira = JSON.parse(localStorage.getItem('lixeira_flashcards') || '[]');
     let currentActiveTab = 'alfabeto';
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    // Ocultar automaticamente se já estiver rodando instalado no celular
+    window.addEventListener('DOMContentLoaded', () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+      if (isStandalone) {
+        const btnInstalar = document.getElementById('btn-instalar-app');
+        if (btnInstalar) btnInstalar.style.display = 'none';
+      }
+    });
+
+    function instalarAppPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('btn-instalar-app').style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        // Removido o alert feio! Se o navegador não disparou o prompt nativo, 
+        // o botão simplesmente executa uma ação silenciosa ou pode ser ocultado se preferir.
+        const btn = document.getElementById('btn-instalar-app');
+        if (btn) {
+          btn.style.opacity = '0.7';
+          setTimeout(() => btn.style.opacity = '1', 300);
+        }
+      }
+    }
 
     const alfabeto = [
       { es: "A", visual: "🅰️" }, { es: "Be", visual: "🐝" }, { es: "Ce", visual: "🏠" },
@@ -698,7 +765,6 @@
       { ptMain: "Coral", es: "Coral", visual: "🧡" }
     ];
 
-    // TOP 10 OBJETOS
     const objetos = [
       { es: "Teléfono", visual: "📱", ptMain: "Telefone" },
       { es: "Ordenador", visual: "💻", ptMain: "Computador" },
@@ -712,7 +778,6 @@
       { es: "Lápiz", visual: "✏️", ptMain: "Lápis" }
     ];
 
-    // TOP 10 ANIMAIS
     const animais = [
       { es: "Perro", visual: "🐶", ptMain: "Cão" },
       { es: "Gato", visual: "🐱", ptMain: "Gato" },
@@ -726,7 +791,6 @@
       { es: "Lobo", visual: "🐺", ptMain: "Lobo" }
     ];
 
-    // TOP 20 ALIMENTOS
     const alimentos = [
       { es: "Manzana", visual: "🍎", ptMain: "Maçã" },
       { es: "Plátano", visual: "🍌", ptMain: "Banana" },
@@ -750,7 +814,6 @@
       { es: "Zanahoria", visual: "🥕", ptMain: "Cenoura" }
     ];
 
-    // TOP 10 ROUPAS
     const roupas = [
       { es: "Camiseta", visual: "👕", ptMain: "Camiseta" },
       { es: "Camisa", visual: "👔", ptMain: "Camisa" },
@@ -764,7 +827,6 @@
       { es: "Zapatos", visual: "👟", ptMain: "Sapatos" }
     ];
 
-    // TOP 40 CORPO HUMANO
     const corpoHumano = [
       { es: "Cabeza", visual: "🗣️", ptMain: "Cabeça" },
       { es: "Cara", visual: "😀", ptMain: "Rosto" },
@@ -808,7 +870,6 @@
       { es: "Riñón", visual: "🫘", ptMain: "Rim" }
     ];
 
-    // TOP 20 TRANSPORTES (10 originais + 10 adicionados)
     const transportes = [
       { es: "Coche", visual: "🚗", ptMain: "Carro" },
       { es: "Autobús", visual: "🚌", ptMain: "Autocarro" },
@@ -820,7 +881,6 @@
       { es: "Helicóptero", visual: "🚁", ptMain: "Helicóptero" },
       { es: "Cohete", visual: "🚀", ptMain: "Foguete" },
       { es: "Submarino", visual: "🤿", ptMain: "Submarino" },
-      // 10 CARDS ADICIONADOS
       { es: "Tranvía", visual: "🚊", ptMain: "Elétrico" },
       { es: "Tractor", visual: "🚜", ptMain: "Trator" },
       { es: "Camión", visual: "🚛", ptMain: "Camião" },
@@ -846,41 +906,128 @@
     };
 
     const synth = window.speechSynthesis;
+    let activeAudioElements = [];
+    let activeCardElements = [];
+
+    function fecharTodosCardsAtivos() {
+      activeCardElements.forEach(c => {
+        if (c && c.classList) {
+          c.classList.remove("flipped");
+        }
+      });
+      activeCardElements = [];
+    }
+
+    function pararTodosAudios() {
+      activeAudioElements.forEach(audio => {
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+        } catch(e) {}
+      });
+      activeAudioElements = [];
+
+      if (synth && synth.speaking) {
+        try {
+          synth.cancel();
+        } catch(e) {}
+      }
+    }
 
     function falarEspanhol(texto, card, autoReturn = true) {
-      if (synth.speaking) synth.cancel();
+      fecharTodosCardsAtivos();
+      pararTodosAudios();
+
+      if (card) {
+        card.classList.add("flipped");
+        activeCardElements.push(card);
+      }
+
+      const textoAudio = String(texto || "").trim();
+      if (!textoAudio) return;
+
+      const urlAudio = "https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=es-ES&sl=es&dt=t&q=" + encodeURIComponent(textoAudio);
+      const audio = new Audio();
+      audio.preload = "auto";
+      activeAudioElements.push(audio);
+
+      let finalizado = false;
+
+      const acaoFinal = () => {
+        if (finalizado) return;
+        finalizado = true;
+        if (autoReturn && card) {
+          setTimeout(() => {
+            card.classList.remove("flipped");
+            activeCardElements = activeCardElements.filter(c => c !== card);
+          }, 1000);
+        }
+      };
+
+      audio.onended = acaoFinal;
+      audio.onerror = () => {
+        falarComVozDoSistema(textoAudio, card, autoReturn, acaoFinal);
+      };
+
+      audio.src = urlAudio;
+      const promessa = audio.play();
+      if (promessa && typeof promessa.catch === "function") {
+        promessa.catch(() => {
+          falarComVozDoSistema(textoAudio, card, autoReturn, acaoFinal);
+        });
+      }
+
+      const tempoMaximoSeguranca = Math.max(4000, textoAudio.length * 200) + 1500;
+      setTimeout(() => {
+        if (!finalizado) {
+          acaoFinal();
+        }
+      }, tempoMaximoSeguranca);
+    }
+
+    function falarComVozDoSistema(texto, card, autoReturn, callbackFim) {
+      if (!synth) {
+        if (callbackFim) callbackFim();
+        return;
+      }
+
+      try {
+        synth.cancel();
+      } catch (e) {}
+
       const utterance = new SpeechSynthesisUtterance(texto);
       utterance.lang = 'es-ES';
       utterance.rate = 0.88;
+      utterance.pitch = 1;
+      utterance.volume = 1;
 
-      if (autoReturn) {
-        let jaVoltou = false;
-        const voltar = () => {
-          if (jaVoltou) return;
-          jaVoltou = true;
-          card.classList.remove("flipped");
-        };
-        utterance.onend = () => setTimeout(voltar, 1200);
-        utterance.onerror = () => setTimeout(voltar, 1200);
-        const tempoMaximo = Math.max(1800, texto.length * 110) + 1200;
-        setTimeout(voltar, tempoMaximo);
-      }
+      const vozes = synth.getVoices ? synth.getVoices() : [];
+      const vozFeminina = vozes.find(v => {
+        const nome = (v.name || '').toLowerCase();
+        const idioma = (v.lang || '').toLowerCase();
+        return idioma.startsWith('es') &&
+          /female|mujer|maria|monica|paulina|helena|lucia|sofia|carmen|elena|google español|google spanish/.test(nome);
+      }) || vozes.find(v => (v.lang || '').toLowerCase().startsWith('es'));
+
+      if (vozFeminina) utterance.voice = vozFeminina;
+
+      utterance.onend = () => {
+        if (callbackFim) callbackFim();
+      };
+      utterance.onerror = () => {
+        if (callbackFim) callbackFim();
+      };
 
       synth.speak(utterance);
     }
 
-    // FUNÇÃO DE TRADUÇÃO USANDO GOOGLE TRANSLATE
     async function traduzirParaEspanhol(texto) {
       if (!texto || texto.trim() === '') return texto;
-      
       const textoLimpo = texto.trim();
-      
       try {
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=es&dt=t&q=${encodeURIComponent(textoLimpo)}`;
-        
         const response = await fetch(url);
         const data = await response.json();
-        
         if (data && data[0] && data[0][0] && data[0][0][0]) {
           const traducao = data[0][0][0];
           return traducao.charAt(0).toUpperCase() + traducao.slice(1);
@@ -888,7 +1035,6 @@
       } catch (error) {
         console.error('Erro na tradução via Google:', error);
       }
-      
       return textoLimpo.charAt(0).toUpperCase() + textoLimpo.slice(1);
     }
 
@@ -904,11 +1050,9 @@
 
       todasKeys.forEach((catKey) => {
         const isCustomCat = categoriasCustomizadas.includes(catKey);
-        
         const dadosPadrao = catalogosPadrao[catKey] ? catalogosPadrao[catKey].data : [];
         const cardsMovidos = customCards.filter(c => c.categoriaDestino === catKey);
         const todosOsCards = [...dadosPadrao, ...cardsMovidos];
-
         const nomeCat = catalogosPadrao[catKey] ? catalogosPadrao[catKey].nome : catKey;
 
         const btn = document.createElement('button');
@@ -934,14 +1078,12 @@
         renderGridData(todosOsCards, grid.id, catKey);
       });
 
-      // Botão da Lixeira
       const btnLixeira = document.createElement('button');
       btnLixeira.className = `tab-btn lixeira ${currentActiveTab === 'lixeira' ? 'active' : ''}`;
       btnLixeira.innerText = `🗑️ Lixeira (${lixeira.length})`;
       btnLixeira.onclick = () => switchCategory('lixeira');
       tabsContainer.appendChild(btnLixeira);
 
-      // Grid da Lixeira
       const gridLixeira = document.createElement('div');
       gridLixeira.id = 'grid-lixeira';
       gridLixeira.className = `grid-container ${currentActiveTab === 'lixeira' ? '' : 'hidden'}`;
@@ -996,8 +1138,7 @@
             `;
 
             card.addEventListener("click", () => {
-              const isFlipped = card.classList.toggle("flipped");
-              if (isFlipped) falarEspanhol(item.es, card, true);
+              falarEspanhol(item.es, card, true);
             });
 
             fragment.appendChild(card);
@@ -1007,7 +1148,6 @@
         return;
       }
 
-      // Catálogos padrão - CORES não tem botão de excluir
       const catalogoPermiteExcluir = ['objetos', 'animais', 'alimentos', 'roupas', 'corpo', 'transportes'];
 
       data.forEach(item => {
@@ -1063,8 +1203,7 @@
         `;
 
         card.addEventListener("click", () => {
-          const isFlipped = card.classList.toggle("flipped");
-          if (isFlipped) falarEspanhol(item.es, card, true);
+          falarEspanhol(item.es, card, true);
         });
 
         fragment.appendChild(card);
@@ -1171,7 +1310,6 @@
 
     function verificarDuplicado(nome, idIgnorar = null) {
       const nomeLower = nome.trim().toLowerCase();
-      
       const todosCards = customCards.filter(c => c.id !== idIgnorar);
       const existe = todosCards.some(c => c.ptMain.toLowerCase() === nomeLower);
       
@@ -1329,7 +1467,6 @@
       const fragment = document.createDocumentFragment();
 
       const unassignedCards = customCards.filter(c => !c.categoriaDestino);
-
       const todosCatalogos = Object.keys(catalogosPadrao).concat(categoriasCustomizadas);
 
       unassignedCards.forEach(item => {
@@ -1371,8 +1508,7 @@
         `;
 
         card.addEventListener("click", () => {
-          const isFlipped = card.classList.toggle("flipped");
-          if (isFlipped) falarEspanhol(item.es, card, false);
+          falarEspanhol(item.es, card, false);
         });
 
         fragment.appendChild(card);
@@ -1436,7 +1572,7 @@
       }
     }
 
-   renderApp();
+    renderApp();
   </script>
 </body>
 </html>
