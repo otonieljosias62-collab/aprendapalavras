@@ -1581,23 +1581,15 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 async function instalarAppPWA() {
-  if (!deferredPrompt) {
-    alert("O navegador ainda está preparando a instalação ou este dispositivo exige que você use o menu de opções (3 pontinhos) para adicionar à tela inicial.");
-    return;
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`Resultado da instalação: ${outcome}`);
+    deferredPrompt = null;
+  } else {
+    // Caso o navegador ainda não tenha liberado o gatilho, orientamos o usuário com clareza
+    alert("Para instalar o aplicativo, toque nos três pontinhos (...) no canto superior direito do seu navegador e selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'.");
   }
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') {
-    console.log('Usuário aceitou instalar o PWA');
-  }
-  deferredPrompt = null;
-}
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/aprendapalavras/sw.js')
-      .then(reg => console.log('Service Worker registrado com sucesso!', reg.scope))
-      .catch(err => console.log('Falha ao registrar o Service Worker:', err));
-  });
 }
     renderApp();
   </script>
