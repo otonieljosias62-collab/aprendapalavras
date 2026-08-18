@@ -1,20 +1,16 @@
-const CACHE_NAME = 'apre-conmigo-v1';
-const urlsToCache = [
-  '/aprendapalavras/',
-  '/aprendapalavras/index.html',
-  '/aprendapalavras/manifest.json'
-];
+const CACHE_NAME = 'flashcards-v1';
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+self.addEventListener('activate', (e) => {
+  e.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', (e) => {
+  // Garante que o aplicativo busque alterações recentes diretamente da rede (GitHub)
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });
